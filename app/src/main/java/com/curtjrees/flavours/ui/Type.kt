@@ -1,4 +1,4 @@
-package com.curtjrees.flavourjournal.ui
+package com.curtjrees.flavours.ui
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle

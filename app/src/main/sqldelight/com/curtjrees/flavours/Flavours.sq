@@ -1,0 +1,22 @@
+CREATE TABLE FlavourEntryDb (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL
+);
+
+getById:
+SELECT * FROM FlavourEntryDb WHERE id = ?;
+
+getAll:
+SELECT * FROM FlavourEntryDb;
+
+insert:
+INSERT OR REPLACE
+INTO FlavourEntryDb(name)
+VALUES (?);
+
+delete:
+DELETE FROM FlavourEntryDb WHERE id = ?;
+
+
+INSERT INTO FlavourEntryDb VALUES(0, "First");
+INSERT INTO FlavourEntryDb VALUES(1, "Second");

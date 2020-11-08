@@ -1,4 +1,4 @@
-package com.curtjrees.flavourjournal
+package com.curtjrees.flavours
 
 import org.junit.Test
 
