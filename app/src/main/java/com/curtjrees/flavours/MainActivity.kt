@@ -3,24 +3,26 @@ package com.curtjrees.flavours
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.*
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
+import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.ExperimentalFocus
 import androidx.compose.ui.platform.setContent
-import androidx.compose.ui.unit.dp
+import com.curtjrees.flavours.composables.SwipeDismissLayoutState
+import com.curtjrees.flavours.features.add.AddOverlay
 import com.curtjrees.flavours.features.home.HomeScreen
 import com.curtjrees.flavours.navigation.NavigationViewModel
 import com.curtjrees.flavours.navigation.Screen
 import com.curtjrees.flavours.ui.FlavourJournalTheme
 
+@ExperimentalFocus
 @ExperimentalAnimationApi
+@ExperimentalMaterialApi
+@ExperimentalFoundationApi
 class MainActivity : AppCompatActivity() {
 
     private val navigationViewModel = NavigationViewModel() //TODO: Better construction
@@ -37,10 +39,20 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+
+
+private val animationSpec: AnimationSpec<Float> = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+
+@ExperimentalFocus
 @ExperimentalAnimationApi
+@ExperimentalMaterialApi
+@ExperimentalFoundationApi
 @Composable
 fun MainContent(navigationViewModel: NavigationViewModel) {
-    var showAddOverlay by remember { mutableStateOf(false) }
+    val addOverlayState = rememberSwipeableState(
+        initialValue = SwipeDismissLayoutState.CLOSED,
+        animationSpec = animationSpec
+    )
 
     val navigationEventCallback: (Screen) -> Unit = {
         navigationViewModel.navigateTo(it)
@@ -50,36 +62,10 @@ fun MainContent(navigationViewModel: NavigationViewModel) {
         Crossfade(navigationViewModel.currentScreen) { screen ->
             when (screen) {
                 is Screen.Home -> HomeScreen(navigationEventCallback) {
-                    showAddOverlay = true
+                    addOverlayState.animateTo(SwipeDismissLayoutState.OPEN)
                 }
             }
         }
-        AddOverlay(showAddOverlay) {
-            showAddOverlay = false
-        }
+        AddOverlay(addOverlayState)
     }
-}
-
-@ExperimentalAnimationApi
-@Composable
-fun AddOverlay(visible: Boolean, onCloseCallback: () -> Unit) {
-
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn() + slideInVertically(),
-        exit = fadeOut() + slideOutVertically(),
-        content = {
-            Card(
-                backgroundColor = Color.Green,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .clickable(onClick = onCloseCallback),
-                content = {
-
-                }
-            )
-        }
-    )
-
 }
