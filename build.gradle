@@ -1,10 +1,11 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        kotlin_version = "1.4.10"
-        gradle_version = "4.2.0-alpha15"
-        compose_version = "1.0.0-alpha06"
+        kotlin_version = "1.4.30"
+        gradle_version = "7.0.0-alpha08"
+        compose_version = "1.0.0-beta01"
 
+        hilt_version = '2.33-beta'
         sqldelight_version = "1.4.4"
     }
     repositories {
@@ -13,7 +14,6 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "xml-apis:xml-apis:1.4.01" //Fixes bug with SQLDelight and gradle-wrapper - https://github.com/cashapp/sqldelight/issues/2058
         classpath "com.android.tools.build:gradle:$gradle_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.squareup.sqldelight:gradle-plugin:$sqldelight_version"

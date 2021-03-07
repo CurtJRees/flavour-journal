@@ -1,28 +1,30 @@
 package com.curtjrees.flavours.features.add
 
 import androidx.annotation.Px
+import androidx.compose.animation.Animatable
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animatedColor
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BaseTextField
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeightIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.SwipeableState
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.rememberSwipeableState
@@ -30,43 +32,55 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.ExperimentalFocus
 import androidx.compose.ui.focus.FocusState
-import androidx.compose.ui.focusObserver
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.onSizeChanged
-import androidx.compose.ui.platform.DensityAmbient
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.ui.tooling.preview.Preview
 import com.curtjrees.flavours.composables.SwipeDismissLayout
 import com.curtjrees.flavours.composables.SwipeDismissLayoutState
 import com.curtjrees.flavours.ui.FlavourJournalTheme
+import kotlinx.coroutines.launch
 
 
-@ExperimentalFocus
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
 fun AddOverlay(state: SwipeableState<SwipeDismissLayoutState>) {
+
+    val coroutineScope = rememberCoroutineScope()
+
+    fun close() {
+        coroutineScope.launch {
+            state.animateTo(SwipeDismissLayoutState.CLOSED)
+        }
+    }
+
     SwipeDismissLayout(
         state = state,
         headerContent = {
             IconButton(
                 modifier = Modifier.padding(8.dp),
                 onClick = {
-                    state.animateTo(SwipeDismissLayoutState.CLOSED)
+                    close()
+
                 },
-                icon = {
-                    Icon(asset = Icons.Default.Close, tint = Color.White)
+                content = {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        tint = Color.White,
+                        contentDescription = "Close"
+                    )
                 }
             )
         },
@@ -76,7 +90,6 @@ fun AddOverlay(state: SwipeableState<SwipeDismissLayoutState>) {
     )
 }
 
-@ExperimentalFocus
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
@@ -85,16 +98,17 @@ fun AddOverlay(state: SwipeableState<SwipeDismissLayoutState>) {
 private fun AddOverlayContent(swipePercent: Float) {
     val columnPadding = 16.dp
 
-    var titleInputValue by remember { mutableStateOf(TextFieldValue()) }
+    var titleInputValue by remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = columnPadding)
-            .preferredHeightIn(min = 200.dp),
+            .heightIn(min = 200.dp),
         backgroundColor = Color.White,
         content = {
             Column(Modifier.padding(16.dp)) {
+                Text(swipePercent.toString(), fontSize = 12.sp)
                 Text("9th November", fontSize = 12.sp)
 
                 FlatTextField(
@@ -107,12 +121,16 @@ private fun AddOverlayContent(swipePercent: Float) {
         }
     )
 
-    Spacer(modifier = Modifier.fillMaxWidth().height(columnPadding))
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(columnPadding)
+    )
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = columnPadding)
-            .preferredHeightIn(min = 100.dp),
+            .heightIn(min = 100.dp),
         backgroundColor = Color.White,
         content = {
             Text("Other", color = Color.Black, fontSize = 24.sp)
@@ -120,53 +138,58 @@ private fun AddOverlayContent(swipePercent: Float) {
     )
 
 
-    Spacer(modifier = Modifier.fillMaxWidth().height(64.dp))
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
+    )
 }
 
-@ExperimentalFocus
 @ExperimentalFoundationApi
 @Composable
 fun FlatTextField(
-    text: TextFieldValue,
+    text: String,
+    modifier: Modifier = Modifier,
     placeholderText: String? = null,
     textStyle: TextStyle = TextStyle.Default,
-    onTextChange: (TextFieldValue) -> Unit,
-    modifier: Modifier = Modifier
+    onTextChange: (String) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     val activeIndicatorColor = Color.Red
     val inactiveIndicatorColor = Color.Gray
-    val animatedIndicatorColor = animatedColor(initVal = inactiveIndicatorColor)
+    val animatedIndicatorColor = Animatable(inactiveIndicatorColor)
 
     fun updateState(active: Boolean) {
-        val targetIndicatorColor = if (active) activeIndicatorColor else inactiveIndicatorColor
-        animatedIndicatorColor.animateTo(targetIndicatorColor, anim = tween(durationMillis = 200, easing = LinearEasing))
+        coroutineScope.launch {
+            val targetIndicatorColor = if (active) activeIndicatorColor else inactiveIndicatorColor
+            animatedIndicatorColor.animateTo(targetIndicatorColor, animationSpec = tween(durationMillis = 200, easing = LinearEasing))
+        }
     }
 
-
     @Px var textFieldHeightPx by remember { mutableStateOf(0) }
-    val textFieldHeight = with(DensityAmbient.current) { textFieldHeightPx.toDp() }
+    val textFieldHeight = with(LocalDensity.current) { textFieldHeightPx.toDp() }
 
-    //TODO: Wait for single-line to be implemented
 
     Box(Modifier.onSizeChanged { textFieldHeightPx = it.height }) {
-        if (placeholderText != null && text.text.isEmpty()) {
+        if (placeholderText != null && text.isEmpty()) {
             Text(placeholderText, style = textStyle, modifier = modifier)
         }
 
-        BaseTextField(
+        BasicTextField(
             value = text,
+            singleLine = true,
+            onValueChange = onTextChange,
             textStyle = textStyle,
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Next,
-            onImeActionPerformed = { action ->
-                if (action == ImeAction.Next) {
-
-                }
-            },
-            modifier = modifier.focusObserver {
+            modifier = modifier.onFocusChanged {
                 updateState(it == FocusState.Active)
             },
-            onValueChange = onTextChange,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions {
+                //TODO: On action
+            }
         )
 
         Box(
@@ -181,12 +204,11 @@ fun FlatTextField(
 }
 
 
-@ExperimentalFocus
 @ExperimentalFoundationApi
 @Composable
 @Preview
 fun previewFlatTextField() {
-    val textValue = TextFieldValue("Something")
+    val textValue = "Something"
 
     FlavourJournalTheme {
         FlatTextField(
@@ -196,7 +218,6 @@ fun previewFlatTextField() {
     }
 }
 
-@ExperimentalFocus
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
